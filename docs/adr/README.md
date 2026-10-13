@@ -18,3 +18,5 @@ ADRs are append-only. To change a past decision, create a new ADR that supersede
 | [ADR-006](ADR-006-music-profile-and-ml-layer.md) | Music Profile and ML Layer | Accepted | 2025-07-01 |
 | [ADR-007](ADR-007-crdt-readiness.md) | CRDT Readiness | Accepted | 2025-07-01 |
 | [ADR-008](ADR-008-deployment-topology.md) | Deployment Topology | Accepted | 2025-07-01 |
+| [ADR-009](ADR-009-dotnet-poc-stack.md) | .NET POC Stack Selection | Accepted | 2025-07-01 |
+| [ADR-010](ADR-010-azure-mvp-topology.md) | Azure MVP Topology | Accepted | 2025-07-01 |
