@@ -32,13 +32,14 @@ try
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<DjqboxDbContext>();
         await db.Database.MigrateAsync();
+        await DatabaseSeeder.SeedAsync(db);
     }
 
     HealthEndpoints.Map(app);
 
     await app.RunAsync();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
 }
