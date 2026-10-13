@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4A204C3B-CDA1-4F2D-A0A2-5866F60014A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DJQbox.Api", "src\DJQbox.Api\DJQbox.Api.csproj", "{8EA0F3FE-06ED-4F68-9638-585F6B2311B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DJQbox.Tests", "src\DJQbox.Tests\DJQbox.Tests.csproj", "{12739F3A-8EF6-498C-8C3D-9132ECAF83D9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8EA0F3FE-06ED-4F68-9638-585F6B2311B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EA0F3FE-06ED-4F68-9638-585F6B2311B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EA0F3FE-06ED-4F68-9638-585F6B2311B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EA0F3FE-06ED-4F68-9638-585F6B2311B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12739F3A-8EF6-498C-8C3D-9132ECAF83D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12739F3A-8EF6-498C-8C3D-9132ECAF83D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12739F3A-8EF6-498C-8C3D-9132ECAF83D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12739F3A-8EF6-498C-8C3D-9132ECAF83D9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8EA0F3FE-06ED-4F68-9638-585F6B2311B5} = {4A204C3B-CDA1-4F2D-A0A2-5866F60014A6}
+		{12739F3A-8EF6-498C-8C3D-9132ECAF83D9} = {4A204C3B-CDA1-4F2D-A0A2-5866F60014A6}
+	EndGlobalSection
+EndGlobal

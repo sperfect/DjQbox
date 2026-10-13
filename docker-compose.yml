@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: djqbox
+      POSTGRES_USER: djqbox
+      POSTGRES_PASSWORD: djqbox
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  api:
+    build:
+      context: .
+      dockerfile: src/DJQbox.Api/Dockerfile
+    environment:
+      ConnectionStrings__Default: "Host=db;Database=djqbox;Username=djqbox;Password=djqbox"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+volumes:
+  pgdata:
