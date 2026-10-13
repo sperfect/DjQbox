@@ -414,7 +414,7 @@ Current task status — update this section as tasks complete:
 
 | Task | Description | Status |
 |---|---|---|
-| Task 1 | Project scaffold + health endpoint | Not started |
+| Task 1 | Project scaffold + health endpoint | Completed |
 | Task 2 | Domain model + EF Core | Not started |
 | Task 3 | Auth (simplified JWT) | Not started |
 | Task 4 | Queue endpoints | Not started |
