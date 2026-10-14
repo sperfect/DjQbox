@@ -65,6 +65,7 @@ README.md        ← Project README
 | `ADR-008` | Cloud-enabled not cloud-required; RPi to distributed cloud spectrum |
 | `ADR-009` | .NET 8 Minimal API + PostgreSQL for first implementation |
 | `ADR-010` | Azure Container Apps topology for MVP |
+| `ADR-011` | Service Bus (internal event bus) + Azure Web PubSub MQTT (client push) |
 
 ### Implementation Guides (`docs/impl/`)
 

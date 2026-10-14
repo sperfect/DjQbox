@@ -20,3 +20,4 @@ ADRs are append-only. To change a past decision, create a new ADR that supersede
 | [ADR-008](ADR-008-deployment-topology.md) | Deployment Topology | Accepted | 2025-07-01 |
 | [ADR-009](ADR-009-dotnet-poc-stack.md) | .NET POC Stack Selection | Accepted | 2025-07-01 |
 | [ADR-010](ADR-010-azure-mvp-topology.md) | Azure MVP Topology | Accepted | 2025-07-01 |
+| [ADR-011](ADR-011-messaging-architecture.md) | Messaging Architecture — Service Bus + Web PubSub MQTT | Accepted | 2025-07-01 |

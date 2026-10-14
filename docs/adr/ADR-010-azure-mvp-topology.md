@@ -26,7 +26,8 @@ Use **Azure Container Apps** as the hosting platform for the MVP, with the follo
 |---|---|
 | API Gateway + all services (single process) | Azure Container Apps (single Container App, managed ingress with TLS) |
 | PostgreSQL database | Azure Database for PostgreSQL Flexible Server |
-| Event Bus / SignalR backplane | Azure SignalR Service (serverless mode) |
+| Internal event bus (backend) | Azure Service Bus (Standard tier, topics + subscriptions) |
+| Client push (browser + daemon players) | Azure Web PubSub (Free tier, MQTT 3.1.1/5.0) |
 | Container image registry | Azure Container Registry |
 | Secrets management | Azure Key Vault + Managed Identity |
 | Structured logging + metrics | Azure Monitor + Log Analytics + Application Insights |
@@ -61,17 +62,17 @@ Use **Azure Container Apps** as the hosting platform for the MVP, with the follo
 **Positive:**
 - Azure Container Apps handles TLS, scaling, and health probes with minimal configuration.
 - Managed Identity eliminates credential management in application code (no Azure SDK calls in domain logic; secrets injected as environment variables).
-- Azure SignalR Service is a configuration swap — the application code does not change between POC (in-process) and MVP (managed service).
+- Azure Service Bus and Azure Web PubSub are configuration swaps — the application code does not change between POC (in-process) and MVP (managed services). See ADR-011.
 - Container Apps revision model enables blue-green deployments and rollback.
 - Application Insights provides distributed tracing, request logging, and custom event tracking aligned with the observability spec.
 - Cost is predictable and low for MVP traffic (see cost estimate in `docs/impl/MVP-azure-plan.md`).
 
 **Negative / Trade-offs:**
 - Azure Container Apps cold-start latency (scale to zero) is 2–5 seconds on first request. Set minimum replicas to 1 for production to eliminate this.
-- Azure SignalR Service free tier (20 units) supports approximately 400 concurrent WebSocket connections. Upgrade to Standard if concurrent connections exceed this.
-- Azure Database for PostgreSQL Flexible Server is the primary cost driver (~$30–40/month on Burstable tier). Cannot be eliminated without switching to a serverless database option.
-- The MVP remains a single Container App (Tier 2 equivalent). Splitting into microservices (Tier 3) requires additional Container Apps, inter-service networking, and DAPR or service mesh — deferred to post-MVP.
-- Azure-specific services (SignalR Service, Key Vault, Container Registry) are introduced at the hosting layer, not the application layer. Migrating to a different cloud would require swapping these services but not changing application code.
+- Azure Web PubSub free tier supports approximately 20 units / 400 concurrent MQTT connections. Upgrade to Standard if concurrent connections exceed this.
+- Azure Database for PostgreSQL Flexible Server is the primary cost driver (~$30–40/month on Burstable tier).
+- The MVP remains a single Container App (Tier 2 equivalent). Splitting into microservices (Tier 3) requires additional Container Apps — deferred to post-MVP.
+- Azure-specific services (Service Bus, Web PubSub, Key Vault, Container Registry) are introduced at the hosting layer, not the application layer. The MQTT protocol used by Web PubSub is an open standard; clients are not Azure-specific.
 
 ---
 
@@ -79,3 +80,4 @@ Use **Azure Container Apps** as the hosting platform for the MVP, with the follo
 
 - [ADR-008: Deployment Topology](ADR-008-deployment-topology.md) — Azure MVP is Tier 2 in the deployment spectrum
 - [ADR-009: .NET POC Stack](ADR-009-dotnet-poc-stack.md) — the application stack being deployed
+- [ADR-011: Messaging Architecture](ADR-011-messaging-architecture.md) — Service Bus (internal) + Web PubSub MQTT (client push)

@@ -229,6 +229,7 @@ QS -down-> LF
 | `adr/ADR-008-deployment-topology.md` | ADR-008: Deployment Topology | Cloud-enabled not cloud-required; RPi to distributed cloud. |
 | `adr/ADR-009-dotnet-poc-stack.md` | ADR-009: .NET POC Stack | .NET 8 Minimal API + PostgreSQL selected for first implementation. |
 | `adr/ADR-010-azure-mvp-topology.md` | ADR-010: Azure MVP Topology | Azure Container Apps topology for MVP deployment. |
+| `adr/ADR-011-messaging-architecture.md` | ADR-011: Messaging Architecture | Service Bus (internal) + Azure Web PubSub MQTT (client push). |
 | `spec/11-observability-spec.md` | Observability Specification | Logs, metrics, traces, health endpoints across all deployment tiers. |
 | `impl/POC-implementation-plan.md` | POC Implementation Plan | .NET 8 + Docker task breakdown for the first working implementation. |
 | `impl/MVP-azure-plan.md` | MVP Azure Promotion Plan | Promotion path from local POC to Azure Container Apps. |
