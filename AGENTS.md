@@ -72,7 +72,7 @@ README.md        ← Project README
 | File | Purpose |
 |---|---|
 | `POC-implementation-plan.md` | 10-task .NET 8 + Docker Compose build guide with acceptance criteria |
-| `MVP-azure-plan.md` | Azure promotion path: Container Apps, PostgreSQL Flexible Server, SignalR Service |
+| `MVP-azure-plan.md` | Azure promotion path: Container Apps, PostgreSQL Flexible Server, Service Bus, Web PubSub MQTT |
 
 ### Agent Guides (this directory)
 
@@ -88,7 +88,7 @@ README.md        ← Project README
 
 1. **Spec is the source of truth.** Implementation code must conform to the spec. If there is a conflict, update the spec first (with rationale), then update the code.
 
-2. **Cloud-enabled, not cloud-required.** Never introduce a hard dependency on a cloud service in the application core. Azure-specific services (Key Vault, SignalR Service) are injected at the hosting layer via configuration, not baked into domain logic.
+2. **Cloud-enabled, not cloud-required.** Never introduce a hard dependency on a cloud service in the application core. Azure-specific services (Key Vault, Web PubSub, Service Bus) are injected at the hosting layer via configuration, not baked into domain logic.
 
 3. **Venues are isolated.** No cross-venue data access is possible. Every query, token, and operation is scoped to a single venue. Enforce this at the service and database layer.
 
@@ -112,7 +112,7 @@ Two tracks run in parallel and do not block each other:
 Add new spec documents and ADRs. Current backlog:
 - `12-error-handling-spec.md` — standard error codes, retry policy, circuit breaker
 - `13-venue-player-browser-spec.md` — detailed browser tab player spec
-- `ADR-011` — error handling strategy
+- `ADR-012` — error handling strategy
 - Review and refine existing specs as implementation reveals gaps
 
 See `AGENTS-spec.md` for full instructions.
