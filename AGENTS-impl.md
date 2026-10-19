@@ -415,15 +415,15 @@ Current task status — update this section as tasks complete:
 | Task | Description | Status |
 |---|---|---|
 | Task 1 | Project scaffold + health endpoint | Completed |
-| Task 2 | Domain model + EF Core | Not started |
-| Task 3 | Auth (simplified JWT) | Not started |
-| Task 4 | Queue endpoints | Not started |
-| Task 5 | Recommendation endpoints + veto timer | Not started |
-| Task 6 | SignalR hub + real-time events | Not started |
-| Task 7 | Source endpoint (local files stub) | Not started |
-| Task 8 | Dummy frontend (index.html) | Not started |
-| Task 9 | Integration tests | Not started |
-| Task 10 | Docker polish + README | Not started |
+| Task 2 | Domain model + EF Core | Completed |
+| Task 3 | Auth (simplified JWT) | Completed |
+| Task 4 | Queue endpoints | Completed |
+| Task 5 | Recommendation endpoints + veto timer | Completed |
+| Task 6 | SignalR hub + real-time events | Completed |
+| Task 7 | Source endpoint (local files stub) | Completed |
+| Task 8 | Dummy frontend (index.html) | Completed |
+| Task 9 | Integration tests | Completed |
+| Task 10 | Docker polish + README | Completed |
 
 ---
 

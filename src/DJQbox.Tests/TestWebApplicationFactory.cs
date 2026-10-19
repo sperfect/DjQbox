@@ -15,6 +15,7 @@ namespace DJQbox.Tests;
 public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private PostgreSqlContainer? _postgres;
+    private readonly string _inMemoryDbName = "DjqboxTestDb-" + Guid.NewGuid().ToString("N");
 
     public string AdminToken { get; private set; } = string.Empty;
     public string GuestToken { get; private set; } = string.Empty;
@@ -78,7 +79,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 
                 services.AddDbContext<DjqboxDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("DjqboxTestDb-" + Guid.NewGuid());
+                    options.UseInMemoryDatabase(_inMemoryDbName);
                 });
             }
         });

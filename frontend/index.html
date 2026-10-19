@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DJQBox — Collaborative Music Control</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 1.5rem;
+    }
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand h1 { font-size: 1.5rem; font-weight: 700; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: #0284c7;
+      color: white;
+    }
+    .badge.connected { background: #059669; }
+    .badge.disconnected { background: #dc2626; }
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    label { font-size: 0.875rem; color: var(--text-muted); }
+    select, input, button {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+    select:focus, input:focus { outline: 2px solid var(--accent); }
+    button {
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    button:hover { background: var(--accent-hover); }
+    button.secondary { background: var(--card-bg); border: 1px solid var(--border); }
+    button.secondary:hover { background: var(--border); }
+    button.danger { background: var(--danger); }
+    button.danger:hover { background: #dc2626; }
+    button.success { background: var(--success); }
+    button.success:hover { background: #059669; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .now-playing-box {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .track-title { font-size: 1.25rem; font-weight: 700; color: #fff; }
+    .track-artist { font-size: 1rem; color: var(--text-muted); }
+    .track-meta { font-size: 0.8rem; color: var(--text-muted); }
+    audio { width: 100%; filter: invert(0.9) hue-rotate(180deg); }
+
+    .queue-list, .rec-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 0.375rem;
+      padding: 0.6rem 0.75rem;
+      gap: 0.75rem;
+    }
+    .list-item.playing {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .item-info { flex: 1; min-width: 0; }
+    .item-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-sub { font-size: 0.8rem; color: var(--text-muted); }
+    .item-actions { display: flex; gap: 0.35rem; }
+
+    .auth-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 1.5rem;
+    }
+    .auth-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      align-items: end;
+      margin-top: 0.5rem;
+    }
+    .auth-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .auth-group input { width: 100%; font-family: monospace; font-size: 0.75rem; }
+
+    .search-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .search-row input { flex: 1; }
+    .countdown {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--warning);
+    }
+    .status-pill {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.25rem;
+      background: var(--border);
+      text-transform: uppercase;
+    }
+    .status-pill.playing { background: var(--success); color: white; }
+    .status-pill.pending { background: var(--warning); color: black; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <h1>🎧 DJQBox POC</h1>
+      <span id="connectionBadge" class="badge disconnected">● SignalR Off</span>
+    </div>
+    <div class="controls-bar">
+      <div>
+        <label for="modeSelect">Queue Mode:</label>
+        <select id="modeSelect" onchange="updateVenueMode()">
+          <option value="autopilot">Autopilot</option>
+          <option value="dj">DJ Mode</option>
+        </select>
+      </div>
+      <div>
+        <label for="vetoWindowInput">Veto Window:</label>
+        <input type="number" id="vetoWindowInput" style="width: 70px" min="1" max="300" value="30" onchange="updateVenueMode()" /> s
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid-2">
+      <!-- Left Column: Now Playing -->
+      <section class="card">
+        <h2>
+          <span>▶ Now Playing</span>
+          <button class="secondary" onclick="advanceNowPlaying()">Next Track ⏭</button>
+        </h2>
+        <div class="now-playing-box">
+          <div>
+            <div id="nowPlayingTitle" class="track-title">Nothing playing</div>
+            <div id="nowPlayingArtist" class="track-artist">—</div>
+            <div id="nowPlayingMeta" class="track-meta"></div>
+          </div>
+          <audio id="audioPlayer" controls autoplay></audio>
+        </div>
+      </section>
+
+      <!-- Right Column: Queue -->
+      <section class="card">
+        <h2>
+          <span>Queue (<span id="queueCount">0</span>)</span>
+          <button class="secondary" onclick="fetchQueue()">↻ Refresh</button>
+        </h2>
+        <div id="queueList" class="queue-list">
+          <div style="color: var(--text-muted); font-size: 0.875rem;">Loading queue...</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Recommendations Section -->
+    <div class="grid-2">
+      <!-- Search & Recommend -->
+      <section class="card">
+        <h2>Track Search & Recommend (Guest)</h2>
+        <div class="search-row">
+          <input type="text" id="searchInput" placeholder="Search track title or artist..." onkeydown="if(event.key==='Enter') searchTracks()" />
+          <button onclick="searchTracks()">Search</button>
+        </div>
+        <div id="searchResults" class="rec-list">
+          <div style="color: var(--text-muted); font-size: 0.875rem;">Search tracks above to submit recommendations.</div>
+        </div>
+      </section>
+
+      <!-- Pending Recommendations -->
+      <section class="card">
+        <h2>
+          <span>Pending Recommendations</span>
+          <button class="secondary" onclick="fetchPendingRecommendations()">↻ Refresh</button>
+        </h2>
+        <div id="pendingList" class="rec-list">
+          <div style="color: var(--text-muted); font-size: 0.875rem;">No pending recommendations.</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Auth Management -->
+    <section class="auth-section">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 0.95rem; font-weight: 600;">Authentication & Setup</h3>
+        <button class="secondary" onclick="autoLoadSeedTokens()">⚡ Fetch Seed Tokens</button>
+      </div>
+      <div class="auth-grid">
+        <div class="auth-group">
+          <label for="adminToken">Admin Token (queue:write, venue:admin):</label>
+          <input type="password" id="adminToken" placeholder="Paste JWT Admin Token..." />
+        </div>
+        <div class="auth-group">
+          <label for="guestToken">Guest Token (queue:recommend):</label>
+          <input type="password" id="guestToken" placeholder="Paste JWT Guest Token..." />
+        </div>
+        <div>
+          <button onclick="saveTokens()">Save Tokens</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_BASE = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
+      ? window.location.origin
+      : "http://localhost:8080";
+    const VENUE_ID = "00000000-0000-0000-0000-000000000001";
+
+    let hubConnection = null;
+    let currentMode = "autopilot";
+    let pendingRecommendations = [];
+    let countdownInterval = null;
+
+    function getAdminToken() { return localStorage.getItem("djqbox_admin_token") || ""; }
+    function getGuestToken() { return localStorage.getItem("djqbox_guest_token") || ""; }
+
+    function saveTokens() {
+      const admin = document.getElementById("adminToken").value.trim();
+      const guest = document.getElementById("guestToken").value.trim();
+      localStorage.setItem("djqbox_admin_token", admin);
+      localStorage.setItem("djqbox_guest_token", guest);
+      alert("Tokens saved!");
+      initSignalR();
+      loadAll();
+    }
+
+    async function autoLoadSeedTokens() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/tokens`);
+        if (!res.ok) throw new Error("Failed to fetch seed tokens");
+        const data = await res.json();
+        document.getElementById("adminToken").value = data.admin_token;
+        document.getElementById("guestToken").value = data.guest_token;
+        localStorage.setItem("djqbox_admin_token", data.admin_token);
+        localStorage.setItem("djqbox_guest_token", data.guest_token);
+        initSignalR();
+        loadAll();
+      } catch (err) {
+        alert("Could not auto-fetch tokens: " + err.message);
+      }
+    }
+
+    async function authFetch(url, options = {}, asGuest = false) {
+      const token = asGuest ? getGuestToken() : getAdminToken();
+      options.headers = {
+        ...options.headers,
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      };
+      return fetch(url, options);
+    }
+
+    // --- Audio Player & Now Playing ---
+    const audioPlayer = document.getElementById("audioPlayer");
+    audioPlayer.addEventListener("ended", () => {
+      advanceNowPlaying();
+    });
+
+    async function fetchNowPlaying() {
+      try {
+        const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/now-playing`);
+        if (res.status === 204 || res.status === 404) {
+          renderNowPlaying(null);
+          return;
+        }
+        if (res.ok) {
+          const item = await res.json();
+          renderNowPlaying(item);
+        }
+      } catch (err) {
+        console.error("fetchNowPlaying error", err);
+      }
+    }
+
+    function renderNowPlaying(item) {
+      const titleEl = document.getElementById("nowPlayingTitle");
+      const artistEl = document.getElementById("nowPlayingArtist");
+      const metaEl = document.getElementById("nowPlayingMeta");
+
+      if (!item || !item.track) {
+        titleEl.textContent = "Nothing playing";
+        artistEl.textContent = "—";
+        metaEl.textContent = "";
+        audioPlayer.src = "";
+        return;
+      }
+
+      titleEl.textContent = item.track.title;
+      artistEl.textContent = item.track.artist;
+      metaEl.textContent = `BPM: ${item.track.bpm || '—'} | Energy: ${item.track.energyLevel ? Math.round(item.track.energyLevel * 100) + '%' : '—'}`;
+
+      if (item.track.streamUrl && audioPlayer.src !== item.track.streamUrl) {
+        audioPlayer.src = item.track.streamUrl;
+        audioPlayer.play().catch(e => console.log("Autoplay waiting for user interaction"));
+      }
+    }
+
+    async function advanceNowPlaying() {
+      try {
+        const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/now-playing/advance`, { method: "POST" });
+        if (res.ok) {
+          fetchNowPlaying();
+          fetchQueue();
+        }
+      } catch (err) {
+        console.error("advanceNowPlaying error", err);
+      }
+    }
+
+    // --- Queue ---
+    async function fetchQueue() {
+      try {
+        const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/queue`);
+        if (res.ok) {
+          const data = await res.json();
+          renderQueue(data.items || []);
+        }
+      } catch (err) {
+        console.error("fetchQueue error", err);
+      }
+    }
+
+    function renderQueue(items) {
+      const list = document.getElementById("queueList");
+      document.getElementById("queueCount").textContent = items.length;
+      if (items.length === 0) {
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.875rem;">Queue is empty.</div>';
+        return;
+      }
+
+      list.innerHTML = items.map((item, index) => `
+        <div class="list-item ${item.status === 'playing' ? 'playing' : ''}">
+          <div class="item-info">
+            <div class="item-title">
+              <span class="status-pill ${item.status}">${item.status}</span>
+              ${index + 1}. ${item.track ? item.track.title : item.sourceId}
+            </div>
+            <div class="item-sub">${item.track ? item.track.artist : ''} • Pos: ${item.position.toFixed(2)}</div>
+          </div>
+          <div class="item-actions">
+            ${index > 0 ? `<button class="secondary" onclick="reorderQueueItem('${item.id}', ${items[index - 1].position - 0.5})">▲</button>` : ''}
+            ${index < items.length - 1 ? `<button class="secondary" onclick="reorderQueueItem('${item.id}', ${items[index + 1].position + 0.5})">▼</button>` : ''}
+            <button class="danger" onclick="removeQueueItem('${item.id}')">✕</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function reorderQueueItem(itemId, newPosition) {
+      await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/queue/items/${itemId}/position`, {
+        method: "PATCH",
+        body: JSON.stringify({ position: newPosition })
+      });
+      fetchQueue();
+    }
+
+    async function removeQueueItem(itemId) {
+      await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/queue/items/${itemId}`, {
+        method: "DELETE"
+      });
+      fetchQueue();
+    }
+
+    // --- Search & Recommendations ---
+    async function searchTracks() {
+      const q = document.getElementById("searchInput").value.trim();
+      const resultsEl = document.getElementById("searchResults");
+      if (!q) return;
+
+      resultsEl.innerHTML = '<div style="color: var(--text-muted);">Searching...</div>';
+      try {
+        const res = await authFetch(`${API_BASE}/api/v1/sources/local_files/search?q=${encodeURIComponent(q)}`, {}, true);
+        if (res.ok) {
+          const tracks = await res.json();
+          renderSearchResults(tracks);
+        } else {
+          resultsEl.innerHTML = '<div style="color: var(--danger);">Search failed</div>';
+        }
+      } catch (err) {
+        resultsEl.innerHTML = `<div style="color: var(--danger);">${err.message}</div>`;
+      }
+    }
+
+    function renderSearchResults(tracks) {
+      const resultsEl = document.getElementById("searchResults");
+      if (!tracks || tracks.length === 0) {
+        resultsEl.innerHTML = '<div style="color: var(--text-muted);">No tracks found.</div>';
+        return;
+      }
+
+      resultsEl.innerHTML = tracks.map(t => `
+        <div class="list-item">
+          <div class="item-info">
+            <div class="item-title">${t.title}</div>
+            <div class="item-sub">${t.artist} • ${t.durationSeconds}s</div>
+          </div>
+          <div class="item-actions">
+            <button class="secondary" onclick="addTrackDirectly('${t.sourceAdapter}', '${t.sourceId}')">+ Queue (Admin)</button>
+            <button onclick="submitRecommendation('${t.sourceAdapter}', '${t.sourceId}')">Recommend ▶</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function addTrackDirectly(adapter, sourceId) {
+      const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/queue/items`, {
+        method: "POST",
+        body: JSON.stringify({ sourceAdapter: adapter, sourceId })
+      });
+      if (res.ok) {
+        fetchQueue();
+      } else {
+        const err = await res.json();
+        alert("Failed to add track: " + (err.error?.message || res.statusText));
+      }
+    }
+
+    async function submitRecommendation(adapter, sourceId) {
+      const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/recommendations`, {
+        method: "POST",
+        body: JSON.stringify({ sourceAdapter: adapter, sourceId })
+      }, true); // Guest action
+
+      if (res.status === 201) {
+        fetchPendingRecommendations();
+      } else {
+        const err = await res.json();
+        alert("Recommendation rejected: " + (err.error?.message || res.statusText));
+      }
+    }
+
+    // --- Pending Recommendations & Review ---
+    async function fetchPendingRecommendations() {
+      try {
+        const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/recommendations`);
+        if (res.ok) {
+          pendingRecommendations = await res.json();
+          renderPendingRecommendations();
+        }
+      } catch (err) {
+        console.error("fetchPendingRecommendations error", err);
+      }
+    }
+
+    function renderPendingRecommendations() {
+      const list = document.getElementById("pendingList");
+      if (!pendingRecommendations || pendingRecommendations.length === 0) {
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.875rem;">No pending recommendations.</div>';
+        return;
+      }
+
+      const now = new Date().getTime();
+      list.innerHTML = pendingRecommendations.map(r => {
+        let deadlineHtml = '';
+        if (currentMode === 'autopilot' && r.vetoDeadline) {
+          const diffSeconds = Math.max(0, Math.round((new Date(r.vetoDeadline).getTime() - now) / 1000));
+          deadlineHtml = `<span class="countdown">⏱ ${diffSeconds}s</span>`;
+        }
+
+        return `
+          <div class="list-item">
+            <div class="item-info">
+              <div class="item-title">${r.track ? r.track.title : r.sourceId} ${deadlineHtml}</div>
+              <div class="item-sub">${r.track ? r.track.artist : ''} • Submitted by ${r.submittedBy ? r.submittedBy.substring(0, 8) : 'guest'}</div>
+            </div>
+            <div class="item-actions">
+              ${currentMode === 'dj' ? `
+                <button class="success" onclick="reviewRecommendation('${r.id}', 'accept')">Accept</button>
+                <button class="danger" onclick="reviewRecommendation('${r.id}', 'reject')">Reject</button>
+              ` : `
+                <button class="danger" onclick="reviewRecommendation('${r.id}', 'veto', 'Admin veto')">Veto</button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function reviewRecommendation(id, action, reason) {
+      const body = { action };
+      if (reason) body.reason = reason;
+
+      const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}/recommendations/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        fetchPendingRecommendations();
+        fetchQueue();
+      }
+    }
+
+    // --- Venue Config & Mode Switch ---
+    async function fetchVenue() {
+      try {
+        const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}`);
+        if (res.ok) {
+          const venue = await res.json();
+          currentMode = venue.mode;
+          document.getElementById("modeSelect").value = venue.mode;
+          document.getElementById("vetoWindowInput").value = venue.vetoWindowSeconds || 30;
+          renderPendingRecommendations();
+        }
+      } catch (err) {
+        console.error("fetchVenue error", err);
+      }
+    }
+
+    async function updateVenueMode() {
+      const mode = document.getElementById("modeSelect").value;
+      const vetoSec = parseInt(document.getElementById("vetoWindowInput").value, 10) || 30;
+
+      const res = await authFetch(`${API_BASE}/api/v1/venues/${VENUE_ID}`, {
+        method: "PATCH",
+        body: JSON.stringify({ mode, vetoWindowSeconds: vetoSec })
+      });
+
+      if (res.ok) {
+        currentMode = mode;
+        renderPendingRecommendations();
+      }
+    }
+
+    // --- SignalR Realtime ---
+    function initSignalR() {
+      const token = getAdminToken() || getGuestToken();
+      if (!token) return;
+
+      if (hubConnection) {
+        hubConnection.stop();
+      }
+
+      hubConnection = new signalR.HubConnectionBuilder()
+        .withUrl(`${API_BASE}/hubs/venue`, {
+          accessTokenFactory: () => token
+        })
+        .withAutomaticReconnect()
+        .build();
+
+      const badge = document.getElementById("connectionBadge");
+
+      hubConnection.on("queue.updated", () => {
+        fetchQueue();
+      });
+
+      hubConnection.on("nowplaying.changed", (payload) => {
+        fetchNowPlaying();
+      });
+
+      hubConnection.on("recommendation.received", () => {
+        fetchPendingRecommendations();
+      });
+
+      hubConnection.on("recommendation.promoted", () => {
+        fetchPendingRecommendations();
+        fetchQueue();
+      });
+
+      hubConnection.on("mode.changed", (payload) => {
+        currentMode = payload.newMode;
+        document.getElementById("modeSelect").value = payload.newMode;
+        renderPendingRecommendations();
+      });
+
+      hubConnection.start()
+        .then(() => {
+          badge.className = "badge connected";
+          badge.textContent = "● SignalR Connected";
+          hubConnection.invoke("JoinVenue", VENUE_ID);
+        })
+        .catch(err => {
+          badge.className = "badge disconnected";
+          badge.textContent = "● SignalR Failed";
+          console.error("SignalR start error", err);
+        });
+    }
+
+    // --- Init ---
+    function loadAll() {
+      fetchVenue();
+      fetchNowPlaying();
+      fetchQueue();
+      fetchPendingRecommendations();
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("adminToken").value = getAdminToken();
+      document.getElementById("guestToken").value = getGuestToken();
+
+      if (!getAdminToken()) {
+        autoLoadSeedTokens();
+      } else {
+        initSignalR();
+        loadAll();
+      }
+
+      countdownInterval = setInterval(() => {
+        if (currentMode === 'autopilot' && pendingRecommendations.length > 0) {
+          renderPendingRecommendations();
+        }
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
